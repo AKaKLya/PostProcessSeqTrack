@@ -124,7 +124,7 @@ struct FPostStruct
 
 ///////////////新增的第4组Vector
 		// Vec4Name                 Vec4.R                      	Vec4.G                      Vec4.B                         Vec4.A
-		Data[16].SortOrder = 11;    Data[17].SortOrder = 12;   	 	Data[18].SortOrder = 13;    Data[19].SortOrder = 14;	   Data[20].SortOrder = 15;
+		Data[16].SortOrder = 16;    Data[17].SortOrder = 17;   	 	Data[18].SortOrder = 18;    Data[19].SortOrder = 19;	   Data[20].SortOrder = 20;
 	}
 };
 #endif
