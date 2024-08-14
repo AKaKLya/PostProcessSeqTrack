@@ -110,43 +110,17 @@ struct FPostStruct
 	{
 		Data[0].SetIdentifiers("CameraActorTag", FText::FromString("PostTag"),FText::FromString("Main"));
 
-		Data[1].SetIdentifiers("Vector1Name",		FText::FromString("ParamName"),	FText::FromString("Vector1"));
-		Data[2].SetIdentifiers("Vector1R",		FText::FromString("R"),			FText::FromString("Vector1"));
-		Data[3].SetIdentifiers("Vector1G",		FText::FromString("G"),			FText::FromString("Vector1"));
-		Data[4].SetIdentifiers("Vector1B",		FText::FromString("B"),			FText::FromString("Vector1"));
-		Data[5].SetIdentifiers("Vector1A",		FText::FromString("A"),			FText::FromString("Vector1"));
-		
-		Data[6]. SetIdentifiers("Vector2Name",		FText::FromString("ParamName"),	FText::FromString("Vector2"));
-		Data[7]. SetIdentifiers("Vector2R",		FText::FromString("R"),			FText::FromString("Vector2"));
-		Data[8]. SetIdentifiers("Vector2G",		FText::FromString("G"),			FText::FromString("Vector2"));
-		Data[9]. SetIdentifiers("Vector2B",		FText::FromString("B"),			FText::FromString("Vector2"));
-		Data[10].SetIdentifiers("Vector2A",		FText::FromString("A"),			FText::FromString("Vector2"));
-		
-		Data[11].SetIdentifiers("Vector3Name",		FText::FromString("ParamName"),	FText::FromString("Vector3"));
-		Data[12].SetIdentifiers("Vector3R",		FText::FromString("R"),		    FText::FromString("Vector3"));
-		Data[13].SetIdentifiers("Vector3G",		FText::FromString("G"),		    FText::FromString("Vector3"));
-		Data[14].SetIdentifiers("Vector3B",		FText::FromString("B"),		    FText::FromString("Vector3"));
-		Data[15].SetIdentifiers("Vector3A",		FText::FromString("A"),		    FText::FromString("Vector3"));
+	//省略****************
 
 ///////////////新增的第4组Vector
-		Data[16].SetIdentifiers("Vector4Name",		FText::FromString("ParamName"),	FText::FromString("Vector3"));
+		Data[16].SetIdentifiers("Vector4Name",		FText::FromString("ParamName"),	FText::FromString("Vector4"));
 		Data[17].SetIdentifiers("Vector4R",		FText::FromString("R"),		    FText::FromString("Vector4"));
 		Data[18].SetIdentifiers("Vector4G",		FText::FromString("G"),		    FText::FromString("Vector4"));
 		Data[19].SetIdentifiers("Vector4B",		FText::FromString("B"),		    FText::FromString("Vector4"));
 		Data[20].SetIdentifiers("Vector4A",		FText::FromString("A"),		    FText::FromString("Vector4"));
 
 
-		//CameraActorTag
-		Data[0].SortOrder = 0;
-		
-		// Vec1Name                 Vec1.R                      	Vec1.G                      Vec1.B                         Vec1.A
-		Data[1].SortOrder = 1;	    Data[2].SortOrder = 2;		Data[3].SortOrder = 3;	    Data[4].SortOrder = 4;	   Data[5].SortOrder = 5;
-		
-		// Vec2Name                 Vec2.R                      	Vec2.G                      Vec2.B                         Vec2.A
-		Data[6].SortOrder = 6;	    Data[7].SortOrder = 7;		Data[8].SortOrder = 8;	    Data[9].SortOrder = 9;	   Data[10].SortOrder = 10;
-		
-		// Vec3Name                 Vec3.R                      	Vec3.G                      Vec3.B                         Vec3.A
-		Data[11].SortOrder = 11;    Data[12].SortOrder = 12;   	 	Data[13].SortOrder = 13;    Data[14].SortOrder = 14;	   Data[15].SortOrder = 15;
+		//省略*************
 
 ///////////////新增的第4组Vector
 		// Vec4Name                 Vec4.R                      	Vec4.G                      Vec4.B                         Vec4.A
