@@ -156,3 +156,88 @@ struct FPostStruct
 #endif
 
 ```
+
+在构造函数初始化第四组Vector
+
+```
+UAkaPostSection::UAkaPostSection(const FObjectInitializer& ObjInit) : Super(ObjInit)
+{
+
+//////////省略****************
+	Vector4Name.SetDefault("Vector4");
+	Vector4R.SetDefault(1.f);
+	Vector4G.SetDefault(1.f);
+	Vector4B.SetDefault(1.f);
+	Vector4A.SetDefault(1.f);
+
+}
+```
+在UAkaPostSection::CacheChannelProxy()函数里添加到FMovieSceneChannelProxyData
+
+```
+EMovieSceneChannelProxyType UAkaPostSection::CacheChannelProxy()
+{
+	FMovieSceneChannelProxyData PostChannelProxyData;
+
+#if WITH_EDITOR
+	FPostStruct EditorData;
+	
+	PostChannelProxyData.Add(CameraTagChannel, EditorData.Data[0],	TMovieSceneExternalValue<FString>());
+
+/////////省略******************
+
+	PostChannelProxyData.Add(Vector4Name,	  	  EditorData.Data[16],  TMovieSceneExternalValue<FString>());
+	PostChannelProxyData.Add(Vector4R,		  EditorData.Data[17],  TMovieSceneExternalValue<float>());
+	PostChannelProxyData.Add(Vector4G,		  EditorData.Data[18],  TMovieSceneExternalValue<float>());
+	PostChannelProxyData.Add(Vector4B,		  EditorData.Data[19],  TMovieSceneExternalValue<float>());
+	PostChannelProxyData.Add(Vector4A,		  EditorData.Data[20],  TMovieSceneExternalValue<float>());
+#else
+	
+////////省略********************
+
+	PostChannelProxyData.Add(Vector4Name);
+	PostChannelProxyData.Add(Vector4R);
+	PostChannelProxyData.Add(Vector4G);
+	PostChannelProxyData.Add(Vector4B);
+	PostChannelProxyData.Add(Vector4A);
+#endif
+	ChannelProxy = MakeShared<FMovieSceneChannelProxy>(MoveTemp(PostChannelProxyData));
+	return EMovieSceneChannelProxyType::Dynamic;
+}
+```
+
+在 void UAkaPostSection::Update 函数里更新第四组Vector
+```
+
+void UAkaPostSection::Update(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
+{
+	if(bShouldTick == false)
+	{
+		//UE_LOG(LogTemp,Warning,TEXT("No PostCam Actor, No Tick"));
+		return ;
+	}
+	
+	if(DynamicMat)
+	{
+		const FFrameTime EvalTime = Params.Context.GetTime();
+
+		//省略****************
+
+		const float Vec4R =  GetEvaluateValue( Vector4R, EvalTime);
+		const float Vec4G =  GetEvaluateValue( Vector4G, EvalTime);
+		const float Vec4B =  GetEvaluateValue( Vector4B, EvalTime);
+		const float Vec4A =  GetEvaluateValue( Vector4R, EvalTime);
+
+		// 省略***************
+
+		const FName Vec4 = FName(*Vector3Name.Evaluate(EvalTime));
+
+		DynamicMat->SetVectorParameterValue(Vec1,FLinearColor(Vec1R,Vec1G,Vec1B,Vec1A));
+		DynamicMat->SetVectorParameterValue(Vec2,FLinearColor(Vec2R,Vec2G,Vec2B,Vec2A));
+		DynamicMat->SetVectorParameterValue(Vec3,FLinearColor(Vec3R,Vec3G,Vec3B,Vec3A));
+
+		// 使用第四组Vector更新材质参数
+		DynamicMat->SetVectorParameterValue(Vec4,FLinearColor(Vec4R,Vec4G,Vec4B,Vec4A));
+	}
+}
+```
