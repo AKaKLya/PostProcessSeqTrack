@@ -31,12 +31,12 @@ Update函数 看一眼就明白了
 如果不用Transient，定序器会因为这个变量 而不能保存，K帧半天 存不下来，GG.  材质实例的变量是可以保存的， 因为材质实例是有实体的， 它就在硬盘里放着.
 
 ## 轨道销毁
-情况一:
+### 情况一:
 删除主轨道下面的子轨道时， UAkaPostTrack::RemoveSection 和 RemoveSectionAt 函数会被执行，在这俩函数里 调用 要删除的轨道 的CancelMaterialLink函数.
 
 UAkaPostSection::CancelMaterialLink 遍历根据Tag获取到的 摄像机/后期盒子 们，把它们的动态材质给清除掉. Section赋予的材质 由 Section来清除.
 
-情况二:
+### 情况二:
 在定序器里删除整个主轨道时，定序器会触发一个Event，并且Event会通知是哪个轨道被销毁了， 所以需要在 UAkaPostTrack 创建时， Link这一个Event，
 
 在《轨道创建》那一段里面提到了 轨道是在 FAkaPostTrackEditor::TryCreateMatSceneTrack 函数里创建的，轨道创建后 Link到定序器的事件里，
@@ -79,6 +79,15 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 	TIntrusiveEventHandler<ISequenceDataEventHandler>::OnTrackRemoved(MovieSceneTrack);
 }
 ```
+
+### 情况三: 直接关闭定序器
+关闭定序器时 没有销毁任何通道， 因此 上面的方法已经不可用，必须用其它办法 去掉摄像机/后期盒子 上面的动态材质.
+
+因为定序器是在Editor编辑器阶段里关闭的， 所以直接在PostTrack\Private\PostTrack.cpp里面获取 掌管Editor的神 
+
+当神关闭一个资产编辑器时，神会通知是关闭了哪个编辑器，只要截胡它 Cast一下，看看是不是 定序器的编辑器，
+
+如果是，遍历 定序器编辑器 的轨道，看看有没有本插件增加的轨道，如果有 让轨道通知Section 去掉摄像机/后期盒子 的动态材质.
 
 # 代码修改
 ## 添加Vector数量.
