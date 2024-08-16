@@ -82,6 +82,8 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 
 # 代码修改
 ## 添加Vector数量.
+(更新:在2.0版本中 只需要用宏就可以扩展了，不用再复制很多代码，代码的注释中已经写好了增加通道的例子，只需要去掉注释 就能扩展第4个通道)
+
 目前的版本里面只定义了3个Vector参数 用来K帧， 如果要修改数量，可以模仿：
 
 AkaPostSection.h 添加 4个FMovieSceneFloatChannel 和 1个 FMovieSceneStringChannel，
