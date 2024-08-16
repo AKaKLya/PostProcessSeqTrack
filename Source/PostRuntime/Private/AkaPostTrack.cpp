@@ -88,3 +88,14 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 	//UE_LOG(LogTemp, Warning, TEXT("OnTrackRemoved %s"),*MovieSceneTrack->GetName());
 	TIntrusiveEventHandler<ISequenceDataEventHandler>::OnTrackRemoved(MovieSceneTrack);
 }
+
+void UAkaPostTrack::CancelMaterialLink()
+{
+	for(auto Section : AkaPostSections)
+	{
+		if(auto PostSection = Cast<UAkaPostSection>(Section))
+		{
+			PostSection->CancelMaterialLink();
+		}
+	}
+}

@@ -25,7 +25,7 @@ public class PostTrack : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "Sequencer","MovieScene","UnrealEd"
+				"Core", "Sequencer","MovieScene","UnrealEd","LevelSequence"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

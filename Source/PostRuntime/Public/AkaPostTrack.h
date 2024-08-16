@@ -36,4 +36,6 @@ public:
 	void AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene);
 
 	virtual void OnTrackRemoved(UMovieSceneTrack*) override;
+	void CancelMaterialLink();
+
 };

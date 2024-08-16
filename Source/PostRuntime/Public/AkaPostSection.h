@@ -10,6 +10,41 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "AkaPostSection.generated.h"
 
+USTRUCT()
+struct FAkaVectorStruct
+{
+	GENERATED_BODY()
+public: 
+	UPROPERTY()
+	FMovieSceneStringChannel Name;
+
+	UPROPERTY()
+	FMovieSceneFloatChannel R{};
+
+	UPROPERTY()
+	FMovieSceneFloatChannel G{};
+
+	UPROPERTY()
+	FMovieSceneFloatChannel B{};
+
+	UPROPERTY()
+	FMovieSceneFloatChannel A{};
+
+	void SetName(const FString& InName)
+	{
+		this->Name.SetDefault(InName);
+	}
+	
+	FAkaVectorStruct()
+	{
+		R.SetDefault(1.0f);
+		G.SetDefault(1.0f);
+		B.SetDefault(1.0f);
+		A.SetDefault(1.0f);
+	}
+};
+
+
 UCLASS()
 class POSTRUNTIME_API UAkaPostSection : public UMovieSceneHookSection
 {
@@ -41,42 +76,21 @@ private:
 
 	UPROPERTY(Transient)
 	mutable TArray<AActor*> ActorWithTag;
-	
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector1R{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector1G{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector1B{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector1A{};
-	
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector2R{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector2G{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector2B{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector2A{};
-	
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector3R{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector3G{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector3B{};
-	UPROPERTY()
-	FMovieSceneFloatChannel Vector3A{};
 
 	UPROPERTY()
-	FMovieSceneStringChannel Vector1Name;
-	UPROPERTY()
-	FMovieSceneStringChannel Vector2Name;
-	UPROPERTY()
-	FMovieSceneStringChannel Vector3Name;
+	FMovieSceneStringChannel ActorTagChannel;
 	
 	UPROPERTY()
-	FMovieSceneStringChannel CameraTagChannel;
+	FAkaVectorStruct Vector1;
+
+	UPROPERTY()
+	FAkaVectorStruct Vector2;
+
+	UPROPERTY()
+	FAkaVectorStruct Vector3;
+	
+	//-------------Change this to Add Vector--------------//
+	//UPROPERTY()
+	//FAkaVectorStruct Vector4;
 	
 };
