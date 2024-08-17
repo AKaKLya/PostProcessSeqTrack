@@ -6,9 +6,12 @@
 #include "Channels/MovieSceneFloatChannel.h"
 #include "Channels/MovieSceneStringChannel.h"
 #include "Sections/MovieSceneHookSection.h"
-#include "Materials/MaterialInstance.h"
+
 #include "Materials/MaterialInstanceDynamic.h"
 #include "AkaPostSection.generated.h"
+
+class APostProcessVolume;
+class UMaterialInstance;
 
 USTRUCT()
 struct FAkaVectorStruct
@@ -51,8 +54,15 @@ class POSTRUNTIME_API UAkaPostSection : public UMovieSceneHookSection
 	GENERATED_BODY()
 public:
 	UAkaPostSection(const FObjectInitializer& ObjInit);
+
+	UPROPERTY()
+	UAkaPostSection* This = nullptr;
 	UPROPERTY()
 	UMaterialInstance* MatInstance;
+	UPROPERTY()
+	FString PostActorName = "NoPostActor";
+	UPROPERTY()
+	bool bIsPostActor = false;
 	
 	virtual EMovieSceneChannelProxyType CacheChannelProxy() override;
 	virtual UWorld* GetWorld() const override;
@@ -62,12 +72,18 @@ public:
 	virtual void End	(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const override;
 
 	void CancelMaterialLink();
-
+	float GetEvaluateValue(const FMovieSceneFloatChannel& FloatChannel, const FFrameTime& Time) const;
 private:
 	bool bIsCancelLink = false;
 	
+	void BeginWithTagActor(UWorld* InWorld)const;
+	void BeginWithTagPostActor(UWorld* InWorld)const;
+	
 	UPROPERTY(Transient)
 	mutable UWorld* World=nullptr;
+
+	UPROPERTY(Transient)
+	mutable APostProcessVolume* PostActor = nullptr;
 
 	UPROPERTY(Transient)
 	mutable UMaterialInstanceDynamic* DynamicMat = nullptr;

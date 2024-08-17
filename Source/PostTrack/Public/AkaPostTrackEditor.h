@@ -25,6 +25,7 @@ public:
 	virtual void BuildAddTrackMenu(FMenuBuilder& MenuBuilder) override;
 	virtual TSharedRef<ISequencerSection> MakeSectionInterface(UMovieSceneSection& SectionObject, UMovieSceneTrack& Track, FGuid ObjectBinding) override;
 	
+	virtual void ExtendObjectBindingTrackMenu(TSharedRef<FExtender> Extender, const TArray<FGuid>& ObjectBindings, const UClass* ObjectClass) override;
 	
 	void CreateMatPickerSubMenu(FMenuBuilder& SubMenuBuilder);
 	TSharedRef<SWidget> CreateMatPickerWidget();
@@ -32,5 +33,6 @@ public:
 	void OnMatAssetSelected(const FAssetData& InAssetData);
 	UAkaPostTrack* TryCreateMatSceneTrack(UMovieScene* InMovieScene, UMaterialInstance* InMatInstance);
 
-
+	void ConstructObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, TArray<FGuid> ObjectBindings);
+	void HandleAddComponentMaterialActionExecute(APostProcessVolume* InPostActor,UMaterialInstance* InMatInstance);
 };

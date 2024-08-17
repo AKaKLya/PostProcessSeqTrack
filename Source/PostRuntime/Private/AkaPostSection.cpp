@@ -3,7 +3,7 @@
 
 #include "AkaPostSection.h"
 
-
+#include "Materials/MaterialInstance.h"
 #include "HelperMacro.h"
 #include "Channels/MovieSceneChannelProxy.h"
 #include "IMovieScenePlayer.h"
@@ -46,7 +46,7 @@ UAkaPostSection::UAkaPostSection(const FObjectInitializer& ObjInit) : Super(ObjI
 	bRequiresTriggerHooks = true;
 	EvalOptions.CompletionMode = EMovieSceneCompletionMode::RestoreState;
 	MatInstance= nullptr;
-
+	This=this;
 	ActorTagChannel.SetDefault("PostCam");
 
 
@@ -66,8 +66,11 @@ EMovieSceneChannelProxyType UAkaPostSection::CacheChannelProxy()
 
 #if WITH_EDITOR
 	FPostStruct EditorData;
+	if(!bIsPostActor)
+	{
+		PostChannelProxyData.Add(ActorTagChannel, EditorData.Data[0],	TMovieSceneExternalValue<FString>());
+	}
 	
-	PostChannelProxyData.Add(ActorTagChannel, EditorData.Data[0],	TMovieSceneExternalValue<FString>());
 	ADD_VECTOR_DATA_EDITOR(Vector1,1);
 	ADD_VECTOR_DATA_EDITOR(Vector2,6);
 	ADD_VECTOR_DATA_EDITOR(Vector3,11);
@@ -90,12 +93,7 @@ EMovieSceneChannelProxyType UAkaPostSection::CacheChannelProxy()
 	return EMovieSceneChannelProxyType::Dynamic;
 }
 
-/*
- * 1. Get Tag Key
- * 2. Find Actor By Tag,  Is Camera / PostProcessVolume ?  if not ---> return ,Do nothing
- * 3. if Yes ---> Clear Camera/PP Material
- * 4. Create [Dynamic Material] And Set Actor's Material With [DynamicMat].
- */
+
 void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
 {
 	const auto PlayerWorld= Player->GetPlaybackContext()->GetWorld();
@@ -107,7 +105,100 @@ void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookPara
 	{
 		World = nullptr;
 	}
+	if(bIsPostActor)
+	{
+		BeginWithTagPostActor(PlayerWorld);
+	}
+	else
+	{
+		BeginWithTagActor(PlayerWorld);
+	}
+}
 
+float UAkaPostSection::GetEvaluateValue(const FMovieSceneFloatChannel& FloatChannel, const FFrameTime& Time) const
+{
+	float Value = 0.f;
+	FloatChannel.Evaluate(Time,Value);
+	return Value;
+}
+
+void UAkaPostSection::Update(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
+{
+	if(bShouldTick == false)
+	{
+		return ;
+	}
+	
+	if(DynamicMat)
+	{
+		const FFrameTime EvalTime = Params.Context.GetTime();
+		SET_VECTOR_PARAMETER(Vector1,1);
+		SET_VECTOR_PARAMETER(Vector2,2);
+		SET_VECTOR_PARAMETER(Vector3,3);
+		
+		//-------------Change this to Add Vector--------------//
+		// Add Vector4 ,Step 5.↓  this is the final Step!!
+		//SET_VECTOR_PARAMETER(Vector4,4);
+	}
+}
+
+void UAkaPostSection::End(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
+{
+	
+}
+
+void UAkaPostSection::CancelMaterialLink()
+{
+	if(bIsPostActor)
+	{
+		if(PostActor)
+		{
+			PostActor->Settings.WeightedBlendables.Array.Empty();
+			if(MatInstance)
+			{
+				PostActor->Settings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0,MatInstance));
+			}
+		}
+	}
+	else
+	{
+		for(auto Actor : ActorWithTag)
+		{
+			if(auto TargetCam = Cast<ACameraActor>(Actor))
+			{
+				TargetCam->GetCameraComponent()->PostProcessSettings.WeightedBlendables.Array.Empty();
+				if(MatInstance)
+				{
+					PostActor->Settings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0,MatInstance));
+				}
+			}
+			else if(auto TargetVolume = Cast<APostProcessVolume>(Actor))
+			{
+				TargetVolume->Settings.WeightedBlendables.Array.Empty();
+				if(MatInstance)
+				{
+					PostActor->Settings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0,MatInstance));
+				}
+			}
+		}
+	}
+}
+
+
+
+UWorld* UAkaPostSection::GetWorld() const
+{
+	return World;
+}
+
+/*
+ * 1. Get Tag Key
+ * 2. Find Actor By Tag,  Is Camera / PostProcessVolume ?  if not ---> return ,Do nothing
+ * 3. if Yes ---> Clear Camera/PP Material
+ * 4. Create [Dynamic Material] And Set Actor's Material With [DynamicMat].
+ */
+void UAkaPostSection::BeginWithTagActor(UWorld* InWorld) const
+{
 	const auto CameraTagKey = ActorTagChannel.GetData().GetValues();
 	FName CameraTag = "PostCam";
 	
@@ -118,7 +209,7 @@ void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookPara
 
 	// Find Actor
 	TArray<AActor*> AllActor;
-	UGameplayStatics::GetAllActorsWithTag(PlayerWorld,CameraTag,AllActor);
+	UGameplayStatics::GetAllActorsWithTag(InWorld,CameraTag,AllActor);
 
 	if(AllActor.Num() == 0)
 	{
@@ -167,61 +258,51 @@ void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookPara
 		}
 	}
 	// Set Actor's Material
-}
-
-float GetEvaluateValue(const FMovieSceneFloatChannel& FloatChannel, const FFrameTime& Time)
-{
-	float Value = 0.f;
-	FloatChannel.Evaluate(Time,Value);
-	return Value;
-}
-
-void UAkaPostSection::Update(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
-{
-	if(bShouldTick == false)
-	{
-		return ;
-	}
-	
-	if(DynamicMat)
-	{
-		const FFrameTime EvalTime = Params.Context.GetTime();
-		SET_VECTOR_PARAMETER(Vector1,1);
-		SET_VECTOR_PARAMETER(Vector2,2);
-		SET_VECTOR_PARAMETER(Vector3,3);
-		
-		//-------------Change this to Add Vector--------------//
-		// Add Vector4 ,Step 5.↓
-		//SET_VECTOR_PARAMETER(Vector4,4);
-	}
-}
-
-void UAkaPostSection::End(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
-{
 	
 }
 
-void UAkaPostSection::CancelMaterialLink()
+void UAkaPostSection::BeginWithTagPostActor(UWorld* InWorld) const
 {
-	for(auto Actor : ActorWithTag)
+	if(PostActor == nullptr)
 	{
-		if(auto TargetCam = Cast<ACameraActor>(Actor))
+		TArray<AActor*> AllActor;
+		UGameplayStatics::GetAllActorsOfClass(InWorld,APostProcessVolume::StaticClass(),AllActor);
+		if(AllActor.Num() == 0)
 		{
-			TargetCam->GetCameraComponent()->PostProcessSettings.WeightedBlendables.Array.Empty();
+			bShouldTick = false;
+			return;
 		}
-		else if(auto TargetVolume = Cast<APostProcessVolume>(Actor))
+		for(auto Actor : AllActor)
 		{
-			TargetVolume->Settings.WeightedBlendables.Array.Empty();
+			if(PostActorName == Actor->GetActorNameOrLabel())
+			{
+				PostActor = Cast<APostProcessVolume>(Actor);
+				break;
+			}
 		}
 	}
+
+
+	if(DynamicMat == nullptr)
+	{
+		if(MatInstance)
+		{
+			auto MatName = MatInstance->GetName() + "_Animated";
+			DynamicMat = UMaterialInstanceDynamic::Create(MatInstance, nullptr, FName(MatName));
+		}
+	}
+
+	if(PostActor)
+	{
+		if(PostActor->Settings.WeightedBlendables.Array[0].Object != DynamicMat)
+		{
+			PostActor->Settings.WeightedBlendables.Array.Empty();
+			PostActor->Settings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0,DynamicMat));
+		}
+		bShouldTick = true;
+	}
+	
+	
 }
-
-
-
-UWorld* UAkaPostSection::GetWorld() const
-{
-	return World;
-}
-
 
 #undef LOCTEXT_NAMESPACE

@@ -12,4 +12,8 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
+private:
+	FDelegateHandle DefaultTrackHandle;
+	void AddPostProcessTracks(const AActor& SourceActor, const FGuid& Binding,TSharedPtr<class ISequencer> Sequencer);
 };

@@ -2,10 +2,12 @@
 
 #include "PostTrack.h"
 
+#include "AkaPostSection.h"
 #include "AkaPostTrack.h"
 #include "AkaPostTrackEditor.h"
 #include "ISequencerModule.h"
 #include "LevelSequence.h"
+#include "ILevelSequenceModule.h"
 #define LOCTEXT_NAMESPACE "FPostTrackModule"
 
 void FPostTrackModule::StartupModule()
@@ -29,14 +31,92 @@ void FPostTrackModule::StartupModule()
 				}
 			}
 		}
-		
 	});
+
+	ILevelSequenceModule& LevelSequenceModule = FModuleManager::LoadModuleChecked<ILevelSequenceModule>("LevelSequence");
+	
+	DefaultTrackHandle = LevelSequenceModule.OnNewActorTrackAdded().AddRaw(this,&FPostTrackModule::AddPostProcessTracks);
 
 }
 
 void FPostTrackModule::ShutdownModule()
 {
 
+}
+
+void FPostTrackModule::AddPostProcessTracks(const AActor& SourceActor, const FGuid& Binding,TSharedPtr<ISequencer> Sequencer)
+{
+	if (!SourceActor.IsA<APostProcessVolume>() )
+	{
+		return;
+	}
+
+	const APostProcessVolume* PPActorConst = Cast<APostProcessVolume>(&SourceActor);
+	APostProcessVolume* PPActor = const_cast<APostProcessVolume*>(PPActorConst);
+	
+	if(PPActor)
+	{
+		const UMovieSceneSequence* Sequence = Sequencer->GetFocusedMovieSceneSequence();
+		UMovieScene* MovieScene = Sequence->GetMovieScene();
+		const FGuid ComponentBinding = Sequencer->GetHandleToObject(PPActor);
+		
+		if (MovieScene->FindSpawnable(Binding))
+		{
+			return;
+		}
+		
+		FString ActorName = PPActor->GetActorNameOrLabel();
+		/*if(!PPActor->ActorHasTag(*ActorName))
+		{
+			PPActor->Tags.Add(*ActorName);
+		}*/
+		
+		UMaterialInstance* PostMat = nullptr;
+		TArray<FWeightedBlendable> PostMatArray = PPActor->Settings.WeightedBlendables.Array;
+		
+		if(PostMatArray.IsEmpty())
+		{
+			return;
+		}
+		
+		if(auto MatObj = PostMatArray[0].Object)
+		{
+			PostMat = Cast<UMaterialInstance>(MatObj);
+		}
+		else
+		{
+			return;
+		}
+		
+		//UClass* TrackClass = UAkaPostTrack::StaticClass();
+		//const UMovieSceneTrack* NewTrack = MovieScene->FindTrack(TrackClass, ComponentBinding);
+
+		const FFrameRate FrameResolution = MovieScene->GetTickResolution();
+		const FFrameTime SpawnSectionStartTime = Sequencer->GetLocalTime().ConvertTo(FrameResolution);
+		if (true)
+		{
+			
+			UAkaPostTrack* PostTrack = MovieScene->AddTrack<UAkaPostTrack>();
+			PostTrack->SetDisplayName(FText::FromString(ActorName+"_Mat"));
+			//auto MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
+			MovieScene->EventHandlers.Link(PostTrack);
+			MovieScene->Modify();
+			
+			UAkaPostSection* SpawnSection = NewObject<UAkaPostSection>(PostTrack, NAME_None, RF_Transactional);
+			SpawnSection->MatInstance = PostMat;
+			SpawnSection->PostActorName = *ActorName;
+			SpawnSection->bIsPostActor = true;
+		
+			FFrameRate FrameRate = MovieScene->GetTickResolution();
+			FFrameTime DurationAsFrameTime = 2.0 * FrameRate;
+			SpawnSection->InitialPlacementOnRow(PostTrack->AkaPostSections, SpawnSectionStartTime.FrameNumber, DurationAsFrameTime.FrameNumber.Value, INDEX_NONE);
+#if WITH_EDITORONLY_DATA
+			FText RowDisplayName = FText::FromString(PostMat->GetName());
+			PostTrack->SetTrackRowDisplayName(RowDisplayName, SpawnSection->GetRowIndex());
+#endif
+			PostTrack->AkaPostSections.Add(SpawnSection);
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

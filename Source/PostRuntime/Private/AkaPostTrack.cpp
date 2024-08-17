@@ -59,10 +59,17 @@ bool UAkaPostTrack::SupportsMultipleRows() const
 	return true;
 }
 
-void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene)
+void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,bool bAsPostActor,FString PostActorName)
 {
 	UAkaPostSection* NewSection = NewObject<UAkaPostSection>(this, NAME_None, RF_Transactional);
 	NewSection->MatInstance = InMatInstance;
+	
+	if(bAsPostActor)
+	{
+		NewSection->bIsPostActor = bAsPostActor;
+		NewSection->PostActorName = *PostActorName;
+	}
+	
 	FFrameRate FrameRate = GetTypedOuter<UMovieScene>()->GetTickResolution();
 	FFrameTime DurationAsFrameTime = 2.0 * FrameRate;
 	NewSection->InitialPlacementOnRow(AkaPostSections, InStartTime.FrameNumber, DurationAsFrameTime.FrameNumber.Value, INDEX_NONE);
@@ -76,6 +83,11 @@ void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* I
 	
 }
 
+void UAkaPostTrack::OnTrackRemovedFromBinding(UMovieSceneTrack* Track, const FGuid& InObjectBindingID)
+{
+	CancelMaterialLink();
+}
+
 void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 {
 	for(auto Section : AkaPostSections)
@@ -86,7 +98,6 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 		}
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("OnTrackRemoved %s"),*MovieSceneTrack->GetName());
-	TIntrusiveEventHandler<ISequenceDataEventHandler>::OnTrackRemoved(MovieSceneTrack);
 }
 
 void UAkaPostTrack::CancelMaterialLink()
