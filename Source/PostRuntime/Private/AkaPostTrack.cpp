@@ -59,16 +59,32 @@ bool UAkaPostTrack::SupportsMultipleRows() const
 	return true;
 }
 
-void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,bool bAsPostActor,FString PostActorName)
+void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime, UMaterialInstance* InMatInstance,UMovieScene* InMovieScene)
 {
 	UAkaPostSection* NewSection = NewObject<UAkaPostSection>(this, NAME_None, RF_Transactional);
 	NewSection->MatInstance = InMatInstance;
 	
-	if(bAsPostActor)
-	{
-		NewSection->bIsPostActor = bAsPostActor;
-		NewSection->PostActorName = *PostActorName;
-	}
+	FFrameRate FrameRate = GetTypedOuter<UMovieScene>()->GetTickResolution();
+	FFrameTime DurationAsFrameTime = 2.0 * FrameRate;
+	NewSection->InitialPlacementOnRow(AkaPostSections, InStartTime.FrameNumber, DurationAsFrameTime.FrameNumber.Value, INDEX_NONE);
+
+#if WITH_EDITORONLY_DATA
+	FText RowDisplayName = FText::FromString(InMatInstance->GetName());
+	SetTrackRowDisplayName(RowDisplayName, NewSection->GetRowIndex());
+#endif
+	
+	AkaPostSections.Add(NewSection);
+}
+
+void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,FGuid PostActorGUID)
+{
+	UAkaPostSection* NewSection = NewObject<UAkaPostSection>(this, NAME_None, RF_Transactional);
+	
+	NewSection->MatInstance = InMatInstance;
+	NewSection->bIsPostActor = true;
+	
+	NewSection->PostActorGuid = PostActorGUID;
+	
 	
 	FFrameRate FrameRate = GetTypedOuter<UMovieScene>()->GetTickResolution();
 	FFrameTime DurationAsFrameTime = 2.0 * FrameRate;

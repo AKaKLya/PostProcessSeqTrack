@@ -34,5 +34,5 @@ public:
 	UAkaPostTrack* TryCreateMatSceneTrack(UMovieScene* InMovieScene, UMaterialInstance* InMatInstance);
 
 	void ConstructObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, TArray<FGuid> ObjectBindings);
-	void HandleAddComponentMaterialActionExecute(APostProcessVolume* InPostActor,UMaterialInstance* InMatInstance);
+	void HandleAddComponentMaterialActionExecute(APostProcessVolume* InPostActor,UMaterialInstance* InMatInstance,FGuid PostActorGUID);
 };

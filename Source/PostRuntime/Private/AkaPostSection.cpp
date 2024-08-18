@@ -18,6 +18,7 @@
 
 #define LOCTEXT_NAMESPACE "PostSection"
 
+
 using namespace UE::MovieScene;
 
 #if WITH_EDITOR
@@ -96,6 +97,7 @@ EMovieSceneChannelProxyType UAkaPostSection::CacheChannelProxy()
 
 void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
 {
+	
 	const auto PlayerWorld= Player->GetPlaybackContext()->GetWorld();
 	if(PlayerWorld->WorldType==EWorldType::PIE || PlayerWorld->WorldType == EWorldType::Game)
 	{
@@ -107,7 +109,7 @@ void UAkaPostSection::Begin(IMovieScenePlayer* Player, const FEvaluationHookPara
 	}
 	if(bIsPostActor)
 	{
-		BeginWithTagPostActor(PlayerWorld);
+		BeginWithTagPostActor(PlayerWorld,Player,Params);
 	}
 	else
 	{
@@ -151,7 +153,7 @@ void UAkaPostSection::CancelMaterialLink()
 {
 	if(bIsPostActor)
 	{
-		if(PostActor)
+		if(PostActor != nullptr)
 		{
 			PostActor->Settings.WeightedBlendables.Array.Empty();
 			if(MatInstance)
@@ -261,25 +263,20 @@ void UAkaPostSection::BeginWithTagActor(UWorld* InWorld) const
 	
 }
 
-void UAkaPostSection::BeginWithTagPostActor(UWorld* InWorld) const
+void UAkaPostSection::BeginWithTagPostActor(UWorld* InWorld,IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
 {
+	bShouldTick = false;
+	for (TWeakObjectPtr<> BoundObject : Player->FindBoundObjects(PostActorGuid, Params.SequenceID))
+	{
+		if (APostProcessVolume* FindPostActor = Cast<APostProcessVolume>(BoundObject.Get()))
+		{
+			PostActor = FindPostActor;
+		}
+	}
 	if(PostActor == nullptr)
 	{
-		TArray<AActor*> AllActor;
-		UGameplayStatics::GetAllActorsOfClass(InWorld,APostProcessVolume::StaticClass(),AllActor);
-		if(AllActor.Num() == 0)
-		{
-			bShouldTick = false;
-			return;
-		}
-		for(auto Actor : AllActor)
-		{
-			if(PostActorName == Actor->GetActorNameOrLabel())
-			{
-				PostActor = Cast<APostProcessVolume>(Actor);
-				break;
-			}
-		}
+		//UE_LOG(LogTemp,Warning,TEXT("PostActor Not Found"));
+		return;
 	}
 
 
@@ -300,6 +297,10 @@ void UAkaPostSection::BeginWithTagPostActor(UWorld* InWorld) const
 			PostActor->Settings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0,DynamicMat));
 		}
 		bShouldTick = true;
+	}
+	else
+	{
+		bShouldTick = false;
 	}
 	
 	

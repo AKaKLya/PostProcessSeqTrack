@@ -159,7 +159,7 @@ UAkaPostTrack* FAkaPostTrackEditor::TryCreateMatSceneTrack(UMovieScene* InMovieS
 	
 
 	//Initialize the Evaluation Section
-	PostTrack->AddNewMatSection(GetTimeForKey(),InMatInstance,InMovieScene,false,"");
+	PostTrack->AddNewMatSection(GetTimeForKey(),InMatInstance,InMovieScene);
 
 	
 	return PostTrack;
@@ -180,7 +180,7 @@ void FAkaPostTrackEditor::ConstructObjectBindingTrackMenu(FMenuBuilder& MenuBuil
 		return;
 	}
 
-
+	FGuid ActorID = GetSequencer()->FindObjectId(*PPActor, GetSequencer()->GetFocusedTemplateID());
 	UMaterialInstance* PostMat = nullptr;
 	TArray<FWeightedBlendable> PostMatArray = PPActor->Settings.WeightedBlendables.Array;
 	if(PostMatArray.IsEmpty())
@@ -203,11 +203,12 @@ void FAkaPostTrackEditor::ConstructObjectBindingTrackMenu(FMenuBuilder& MenuBuil
 	}
 		
 	Flag1:
+	
 	if (PostMat)
 	{
 		MenuBuilder.BeginSection("Materials", LOCTEXT("MaterialSection", "Material Parameters"));
 		{
-			FUIAction AddComponentMaterialAction(FExecuteAction::CreateRaw(this, &FAkaPostTrackEditor::HandleAddComponentMaterialActionExecute, PPActor, PostMat));
+			FUIAction AddComponentMaterialAction(FExecuteAction::CreateRaw(this, &FAkaPostTrackEditor::HandleAddComponentMaterialActionExecute, PPActor, PostMat,ActorID));
 			FText AddDecalMaterialLabel = FText::Format(LOCTEXT("PostTrackEditor", "Post: {0}"), FText::FromString(PostMat->GetName()));
 			FText AddDecalMaterialToolTip = FText::Format(LOCTEXT("PostTrackEditor", "Add Post material {0}"), FText::FromString(PostMat->GetName()));
 			MenuBuilder.AddMenuEntry(AddDecalMaterialLabel, AddDecalMaterialToolTip, FSlateIcon(), AddComponentMaterialAction);
@@ -218,7 +219,7 @@ void FAkaPostTrackEditor::ConstructObjectBindingTrackMenu(FMenuBuilder& MenuBuil
 
 }
 
-void FAkaPostTrackEditor::HandleAddComponentMaterialActionExecute(APostProcessVolume* InPostActor,UMaterialInstance* InMatInstance)
+void FAkaPostTrackEditor::HandleAddComponentMaterialActionExecute(APostProcessVolume* InPostActor,UMaterialInstance* InMatInstance,FGuid PostActorGUID)
 {
 	TSharedPtr<ISequencer> SequencerPtr = GetSequencer();
 	UMovieScene* MovieScene = GetFocusedMovieScene();
@@ -230,7 +231,7 @@ void FAkaPostTrackEditor::HandleAddComponentMaterialActionExecute(APostProcessVo
 	
 	MovieScene->EventHandlers.Link(PostTrack);
 	MovieScene->Modify();
-	PostTrack->AddNewMatSection(GetTimeForKey(),InMatInstance,MovieScene,true,InPostActor->GetActorNameOrLabel());
+	PostTrack->AddNewMatSection(GetTimeForKey(),InMatInstance,MovieScene,PostActorGUID);
 }
 
 

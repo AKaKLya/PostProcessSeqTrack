@@ -35,7 +35,7 @@ public:
 
 	void SetName(const FString& InName)
 	{
-		this->Name.SetDefault(InName);
+		Name.SetDefault(InName);
 	}
 	
 	FAkaVectorStruct()
@@ -59,10 +59,11 @@ public:
 	UAkaPostSection* This = nullptr;
 	UPROPERTY()
 	UMaterialInstance* MatInstance;
-	UPROPERTY()
-	FString PostActorName = "NoPostActor";
+
 	UPROPERTY()
 	bool bIsPostActor = false;
+	UPROPERTY()
+	FGuid PostActorGuid;
 	
 	virtual EMovieSceneChannelProxyType CacheChannelProxy() override;
 	virtual UWorld* GetWorld() const override;
@@ -77,7 +78,7 @@ private:
 	bool bIsCancelLink = false;
 	
 	void BeginWithTagActor(UWorld* InWorld)const;
-	void BeginWithTagPostActor(UWorld* InWorld)const;
+	void BeginWithTagPostActor(UWorld* InWorld,IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params)const;
 	
 	UPROPERTY(Transient)
 	mutable UWorld* World=nullptr;

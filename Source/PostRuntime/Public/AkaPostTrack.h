@@ -33,14 +33,14 @@ public:
 	virtual bool IsEmpty() const override;
 	virtual const TArray<UMovieSceneSection*>& GetAllSections() const override;
 	virtual bool SupportsMultipleRows() const override;
-	void AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,bool bAsPostActor,FString PostActorName);
-	
 
+	
 	virtual void OnTrackRemovedFromBinding(UMovieSceneTrack* Track, const FGuid& InObjectBindingID)override;
 	virtual void OnTrackRemoved(UMovieSceneTrack*) override;
 	
-	void CancelMaterialLink();
-
+	void AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene);
+	void AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,FGuid PostActorGUID);
 	
+	void CancelMaterialLink();
 
 };
