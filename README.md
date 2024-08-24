@@ -1,3 +1,40 @@
+
+# 代码修改
+## 添加Vector数量.
+只需要用宏就可以扩展了，代码的注释中已经写好了增加 第四个通道 的例子，只需要去掉注释 就能扩展第4个通道
+
+目前的版本里面只定义了3个Vector参数 用来K帧，修改方法:
+打开 Plugins\PostTrack\Source\PostRuntime\Public\AkaPostSection.h 
+
+找到以下注释中的内容， 将代码的注释去掉，
+```
+//-------------Add Vector Parameter-----Step 1---------//
+	//UPROPERTY()
+	//FAkaVectorStruct Vector4;
+```
+
+ Plugins\PostTrack\Source\PostRuntime\Private\AkaPostSection.cpp
+ 
+找到以下注释中的内容， 将代码的注释去掉，
+```
+//-------------Add Vector Parameter-----Step 2---------//
+		// Step1 is in UAkaPostSection
+		// INIT_METADATA(15, 4);
+
+	//-------------Add Vector Parameter-----Step 3---------//
+	// Vector4.SetName("Post4");
+
+	//-------------Add Vector Parameter-----Step 4---------//
+	//ADD_VECTOR_DATA_EDITOR(Vector4, 15);
+
+	//-------------Add Vector Parameter-----Step 5---------//
+	//ADD_VECTOR_DATA(Vector4);
+
+	//-------------Add Vector Parameter-----Step 6---------//
+		//  This is the final Step!! 
+		//SET_VECTOR_PARAMETER(Vector4,4);
+```
+
 # 插件解释
 
 ## 轨道注册
@@ -88,141 +125,3 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 当神关闭一个资产编辑器时，神会通知是关闭了哪个编辑器，只要截胡它 Cast一下，看看是不是 定序器的编辑器，
 
 如果是，遍历 定序器编辑器 的轨道，看看有没有本插件增加的轨道，如果有 让轨道通知Section 去掉摄像机/后期盒子 的动态材质.
-
-# 代码修改
-## 添加Vector数量.
-(更新:在2.0版本中 只需要用宏就可以扩展了，不用再复制很多代码，代码的注释中已经写好了增加通道的例子，只需要去掉注释 就能扩展第4个通道)
-
-目前的版本里面只定义了3个Vector参数 用来K帧， 如果要修改数量，可以模仿：
-
-AkaPostSection.h 添加 4个FMovieSceneFloatChannel 和 1个 FMovieSceneStringChannel，
-
-例如
-```
-UPROPERTY()
-FMovieSceneFloatChannel Vector4R{};
-UPROPERTY()
-FMovieSceneFloatChannel Vector4G{};
-UPROPERTY()
-FMovieSceneFloatChannel Vector4B{};
-UPROPERTY()
-FMovieSceneFloatChannel Vector4A{};
-UPROPERTY()
-FMovieSceneStringChannel Vector4Name;
-```
-
-AkaPostSection.cpp 修改FPostStruct结构体， 数组容量+5，
-```
-#if WITH_EDITOR
-struct FPostStruct
-{
-	FMovieSceneChannelMetaData Data[21]; // 原本是16，16+5 = 21
-	FPostStruct()
-	{
-		Data[0].SetIdentifiers("CameraActorTag", FText::FromString("PostTag"),FText::FromString("Main"));
-
-	//省略****************
-
-///////////////新增的第4组Vector
-		Data[16].SetIdentifiers("Vector4Name",		FText::FromString("ParamName"),	FText::FromString("Vector4"));
-		Data[17].SetIdentifiers("Vector4R",		FText::FromString("R"),		    FText::FromString("Vector4"));
-		Data[18].SetIdentifiers("Vector4G",		FText::FromString("G"),		    FText::FromString("Vector4"));
-		Data[19].SetIdentifiers("Vector4B",		FText::FromString("B"),		    FText::FromString("Vector4"));
-		Data[20].SetIdentifiers("Vector4A",		FText::FromString("A"),		    FText::FromString("Vector4"));
-
-
-		//省略*************
-
-///////////////新增的第4组Vector
-		// Vec4Name                 Vec4.R                      	Vec4.G                      Vec4.B                         Vec4.A
-		Data[16].SortOrder = 16;    Data[17].SortOrder = 17;   	 	Data[18].SortOrder = 18;    Data[19].SortOrder = 19;	   Data[20].SortOrder = 20;
-	}
-};
-#endif
-
-```
-
-在构造函数初始化第四组Vector
-
-```
-UAkaPostSection::UAkaPostSection(const FObjectInitializer& ObjInit) : Super(ObjInit)
-{
-
-//////////省略****************
-	Vector4Name.SetDefault("Vector4");
-	Vector4R.SetDefault(1.f);
-	Vector4G.SetDefault(1.f);
-	Vector4B.SetDefault(1.f);
-	Vector4A.SetDefault(1.f);
-
-}
-```
-在UAkaPostSection::CacheChannelProxy()函数里添加到FMovieSceneChannelProxyData
-
-```
-EMovieSceneChannelProxyType UAkaPostSection::CacheChannelProxy()
-{
-	FMovieSceneChannelProxyData PostChannelProxyData;
-
-#if WITH_EDITOR
-	FPostStruct EditorData;
-	
-	PostChannelProxyData.Add(CameraTagChannel, EditorData.Data[0],	TMovieSceneExternalValue<FString>());
-
-/////////省略******************
-
-	PostChannelProxyData.Add(Vector4Name,	  	  EditorData.Data[16],  TMovieSceneExternalValue<FString>());
-	PostChannelProxyData.Add(Vector4R,		  EditorData.Data[17],  TMovieSceneExternalValue<float>());
-	PostChannelProxyData.Add(Vector4G,		  EditorData.Data[18],  TMovieSceneExternalValue<float>());
-	PostChannelProxyData.Add(Vector4B,		  EditorData.Data[19],  TMovieSceneExternalValue<float>());
-	PostChannelProxyData.Add(Vector4A,		  EditorData.Data[20],  TMovieSceneExternalValue<float>());
-#else
-	
-////////省略********************
-
-	PostChannelProxyData.Add(Vector4Name);
-	PostChannelProxyData.Add(Vector4R);
-	PostChannelProxyData.Add(Vector4G);
-	PostChannelProxyData.Add(Vector4B);
-	PostChannelProxyData.Add(Vector4A);
-#endif
-	ChannelProxy = MakeShared<FMovieSceneChannelProxy>(MoveTemp(PostChannelProxyData));
-	return EMovieSceneChannelProxyType::Dynamic;
-}
-```
-
-在 void UAkaPostSection::Update 函数里更新第四组Vector
-```
-
-void UAkaPostSection::Update(IMovieScenePlayer* Player, const FEvaluationHookParams& Params) const
-{
-	if(bShouldTick == false)
-	{
-		//UE_LOG(LogTemp,Warning,TEXT("No PostCam Actor, No Tick"));
-		return ;
-	}
-	
-	if(DynamicMat)
-	{
-		const FFrameTime EvalTime = Params.Context.GetTime();
-
-		//省略****************
-
-		const float Vec4R =  GetEvaluateValue( Vector4R, EvalTime);
-		const float Vec4G =  GetEvaluateValue( Vector4G, EvalTime);
-		const float Vec4B =  GetEvaluateValue( Vector4B, EvalTime);
-		const float Vec4A =  GetEvaluateValue( Vector4R, EvalTime);
-
-		// 省略***************
-
-		const FName Vec4 = FName(*Vector3Name.Evaluate(EvalTime));
-
-		DynamicMat->SetVectorParameterValue(Vec1,FLinearColor(Vec1R,Vec1G,Vec1B,Vec1A));
-		DynamicMat->SetVectorParameterValue(Vec2,FLinearColor(Vec2R,Vec2G,Vec2B,Vec2A));
-		DynamicMat->SetVectorParameterValue(Vec3,FLinearColor(Vec3R,Vec3G,Vec3B,Vec3A));
-
-		// 使用第四组Vector更新材质参数
-		DynamicMat->SetVectorParameterValue(Vec4,FLinearColor(Vec4R,Vec4G,Vec4B,Vec4A));
-	}
-}
-```
