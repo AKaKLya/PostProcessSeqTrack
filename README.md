@@ -4,6 +4,7 @@
 只需要用宏就可以扩展了，代码的注释中已经写好了增加 第四个通道 的例子，只需要去掉注释 就能扩展第4个通道
 
 目前的版本里面只定义了3个Vector参数 用来K帧，修改方法:
+
 打开 Plugins\PostTrack\Source\PostRuntime\Public\AkaPostSection.h 
 
 找到以下注释中的内容， 将代码的注释去掉，
