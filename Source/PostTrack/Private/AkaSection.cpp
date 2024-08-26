@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright AKaKLya 2024
 
 
 #include "AkaSection.h"

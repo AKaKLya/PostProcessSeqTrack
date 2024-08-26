@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// Copyright AKaKLya 2024
+#pragma once
 #include "Channels/MovieSceneChannelEditorData.h"
 
 

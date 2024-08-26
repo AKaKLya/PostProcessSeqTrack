@@ -3,12 +3,12 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "PostTrack",
-	"Description": "",
+	"Description": "PostTrack",
 	"Category": "Other",
-	"CreatedBy": "",
+	"CreatedBy": "AKaKLya",
 	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
+	"DocsURL": "https://github.com/AKaKLya/PostProcessSeqTrack/wiki/Post-Track-Docu",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/56bb1e50ea3e4edbac23d1628791bbcd",
 	"SupportURL": "",
 	"EngineVersion": "5.4.0",
 	"CanContainContent": true,
@@ -17,12 +17,18 @@
 		{
 			"Name": "PostTrack",
 			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit"
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		},
 		{
 			"Name": "PostRuntime",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		}
 	]
 }

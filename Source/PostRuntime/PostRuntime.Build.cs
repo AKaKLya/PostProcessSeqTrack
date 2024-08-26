@@ -1,4 +1,5 @@
-﻿using UnrealBuildTool;
+﻿// Copyright AKaKLya 2024
+using UnrealBuildTool;
 
 public class PostRuntime : ModuleRules
 {

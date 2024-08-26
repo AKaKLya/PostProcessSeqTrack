@@ -1,7 +1,7 @@
-﻿#include "PostRuntime.h"
+﻿// Copyright AKaKLya 2024
 
+#include "PostRuntime.h"
 #define LOCTEXT_NAMESPACE "FPostRuntimeModule"
-
 void FPostRuntimeModule::StartupModule()
 {
     

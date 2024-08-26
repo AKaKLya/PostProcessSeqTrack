@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright AKaKLya 2024
 
 #pragma once
 
@@ -35,7 +35,7 @@ public:
 
 	void SetName(const FString& InName)
 	{
-		this->Name.SetDefault(InName);
+		Name.SetDefault(InName);
 	}
 	
 	FAkaVectorStruct()
@@ -55,14 +55,12 @@ class POSTRUNTIME_API UAkaPostSection : public UMovieSceneHookSection
 public:
 	UAkaPostSection(const FObjectInitializer& ObjInit);
 
-	UPROPERTY()
-	UAkaPostSection* This = nullptr;
+	
 	UPROPERTY()
 	UMaterialInstance* MatInstance;
+	
 	UPROPERTY()
-	FString PostActorName = "NoPostActor";
-	UPROPERTY()
-	bool bIsPostActor = false;
+	FGuid PostActorGuid;
 	
 	virtual EMovieSceneChannelProxyType CacheChannelProxy() override;
 	virtual UWorld* GetWorld() const override;
@@ -72,29 +70,21 @@ public:
 	virtual void End	(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const override;
 
 	void CancelMaterialLink();
-	float GetEvaluateValue(const FMovieSceneFloatChannel& FloatChannel, const FFrameTime& Time) const;
+	inline float GetEvaluateValue(const FMovieSceneFloatChannel& FloatChannel, const FFrameTime& Time) const;
+	
 private:
 	bool bIsCancelLink = false;
-	
-	void BeginWithTagActor(UWorld* InWorld)const;
-	void BeginWithTagPostActor(UWorld* InWorld)const;
 	
 	UPROPERTY(Transient)
 	mutable UWorld* World=nullptr;
 
 	UPROPERTY(Transient)
 	mutable APostProcessVolume* PostActor = nullptr;
-
+	
 	UPROPERTY(Transient)
 	mutable UMaterialInstanceDynamic* DynamicMat = nullptr;
 	
 	mutable bool bShouldTick = false;
-
-	UPROPERTY(Transient)
-	mutable TArray<AActor*> ActorWithTag;
-
-	UPROPERTY()
-	FMovieSceneStringChannel ActorTagChannel;
 	
 	UPROPERTY()
 	FAkaVectorStruct Vector1;
@@ -105,7 +95,7 @@ private:
 	UPROPERTY()
 	FAkaVectorStruct Vector3;
 	
-	//-------------Change this to Add Vector--------------//
+	//-------------Add Vector Parameter-----Step 1---------//
 	//UPROPERTY()
 	//FAkaVectorStruct Vector4;
 	

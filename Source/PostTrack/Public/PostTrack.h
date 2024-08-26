@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright AKaKLya 2024
 
 #pragma once
 
@@ -14,6 +14,6 @@ public:
 	virtual void ShutdownModule() override;
 	
 private:
-	FDelegateHandle DefaultTrackHandle;
+	FDelegateHandle PostTrackHandle;
 	void AddPostProcessTracks(const AActor& SourceActor, const FGuid& Binding,TSharedPtr<class ISequencer> Sequencer);
 };

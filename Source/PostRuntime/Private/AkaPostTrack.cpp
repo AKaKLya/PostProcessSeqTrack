@@ -1,9 +1,10 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright AKaKLya 2024
 
 
 #include "AkaPostTrack.h"
 #include "MovieScene.h"
 #include "AkaPostSection.h"
+#include "IMovieScenePlayer.h"
 #include "Materials/MaterialInstance.h"
 
 
@@ -59,16 +60,17 @@ bool UAkaPostTrack::SupportsMultipleRows() const
 	return true;
 }
 
-void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,bool bAsPostActor,FString PostActorName)
+
+void UAkaPostTrack::AddNewMatSection(FFrameTime InStartTime,UMaterialInstance* InMatInstance,UMovieScene* InMovieScene,FGuid InPostActorGUID)
 {
-	UAkaPostSection* NewSection = NewObject<UAkaPostSection>(this, NAME_None, RF_Transactional);
-	NewSection->MatInstance = InMatInstance;
+	MovieScene = InMovieScene;
+	PostActorGuid = InPostActorGUID;
 	
-	if(bAsPostActor)
-	{
-		NewSection->bIsPostActor = bAsPostActor;
-		NewSection->PostActorName = *PostActorName;
-	}
+	UAkaPostSection* NewSection = NewObject<UAkaPostSection>(this, NAME_None, RF_Transactional);
+	
+	NewSection->MatInstance = InMatInstance;
+	NewSection->PostActorGuid = InPostActorGUID;
+	
 	
 	FFrameRate FrameRate = GetTypedOuter<UMovieScene>()->GetTickResolution();
 	FFrameTime DurationAsFrameTime = 2.0 * FrameRate;
@@ -100,6 +102,7 @@ void UAkaPostTrack::OnTrackRemoved(UMovieSceneTrack* MovieSceneTrack)
 	//UE_LOG(LogTemp, Warning, TEXT("OnTrackRemoved %s"),*MovieSceneTrack->GetName());
 }
 
+
 void UAkaPostTrack::CancelMaterialLink()
 {
 	for(auto Section : AkaPostSections)
@@ -110,3 +113,20 @@ void UAkaPostTrack::CancelMaterialLink()
 		}
 	}
 }
+
+#if WITH_EDITORONLY_DATA
+FSlateColor UAkaPostTrack::GetLabelColor(const FMovieSceneLabelParams& LabelParams) const
+{
+	if (LabelParams.Player)
+	{
+		for (TWeakObjectPtr<> WeakObject : LabelParams.Player->FindBoundObjects(PostActorGuid, LabelParams.SequenceID))
+		{
+			if (Cast<APostProcessVolume>(WeakObject.Get()))
+			{
+				return FSlateColor(FLinearColor::White);
+			}
+		}
+	}
+	return FSlateColor(FLinearColor::Red);
+}
+#endif

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright AKaKLya 2024
 
 using UnrealBuildTool;
 
